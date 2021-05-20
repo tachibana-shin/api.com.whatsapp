@@ -1,0 +1,39 @@
+{
+  "name": "api.com.whatsapp",
+  "version": "1.0.0",
+  "description": "A Express.js project",
+  "main": "app.js",
+  "scripts": {
+    "start": "ts-node app.js",
+    "dev": "nodemon app.js",
+    "lint": "eslint --fix",
+    "test": "mocha --exit"
+  },
+  "author": "NguyenThanh1995 <thanhnguyennguyen1995@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-import-routes": "^0.0.2-b4",
+    "express-jwt": "^6.0.0",
+    "helmet": "^4.4.1",
+    "mongoose": "^5.12.5",
+    "morgan": "^1.10.0",
+    "nodemailer": "^6.6.0",
+    "sanitize-html": "^2.3.3",
+    "sha256": "^0.2.0",
+    "socket.io": "^4.1.2",
+    "uuidv4": "^6.2.8"
+  },
+  "devDependencies": {
+    "eslint": "^7.18.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1",
+    "mocha": "^8.2.1",
+    "nodemon": "^2.0.7",
+    "supertest": "^6.1.3"
+  }
+}
