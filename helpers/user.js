@@ -2,6 +2,7 @@ const fs = require("fs");
 const nodemailer = require("nodemailer");
 const jsonwebtoken = require("jsonwebtoken");
 const User = require("../models/User");
+const mongoose = require("mongoose");
 
 const serceKey = fs.readFileSync(__dirname + "/../asc.private", "utf8");
 
@@ -22,13 +23,13 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-exports.existsEmail = async function existsEmail(email) {
+exports.existsEmail = async function (email) {
   const user = await User.findOne({ email });
 
-  return !!user;
+  return !!user?.toJSON() || null;
 };
 
-exports.sendOTP = async function sendOTP(params) {
+exports.sendOTP = async function (params) {
   if (await exports.existsEmail(params.email)) {
     throw new Error(`EMAIL_EXISTS`);
   } else {
@@ -72,7 +73,7 @@ exports.sendOTP = async function sendOTP(params) {
   }
 };
 
-exports.checkOTP = async function checkOTP(otp, token) {
+exports.checkOTP = async function (otp, token) {
   const decode = jsonwebtoken.verify(token, serceKey);
 
   if (decode.data.otp === otp) {
@@ -87,18 +88,20 @@ exports.checkOTP = async function checkOTP(otp, token) {
   }
   return false;
 };
-exports.register = async function register(params) {
+exports.register = async function (params) {
   return await exports.sendOTP(params);
 };
 
-exports.login = async function login(email, password) {
-  const user = await User.findOne(
-    {
-      email,
-      password,
-    },
-    "description avatar _id email name uuid created __v"
-  );
+exports.login = async function (email, password) {
+  const user = (
+    await User.findOne(
+      {
+        email,
+        password,
+      },
+      "_id"
+    )
+  )?.toJSON() || null;
   if (user) {
     return {
       user: user,
@@ -111,7 +114,7 @@ exports.login = async function login(email, password) {
   throw new Error("LOGIN_FAILED");
 };
 
-exports.userInToken = function userInToken(token) {
+exports.userInToken = function (token) {
   try {
     return jsonwebtoken.verify(token, serceKey).data;
   } catch (e) {
@@ -119,10 +122,87 @@ exports.userInToken = function userInToken(token) {
   }
 };
 
-exports.emitMyOnline = async function emitMyOnline(_id) {
-  const date = new Date();
-  await User.findOneAndUpdate({ _id }, { lastOnline: date }).then(() => {
-    console.log(`${_id} online`);
-  });
+exports.emitMyOnline = async function (_id, date = new Date()) {
+  if (typeof date === "boolean") {
+    await User.updateOne({ _id }, { "is-online": date });
+  } else {
+    await User.updateOne({ _id }, { "last-online": date });
+  }
   return date;
 };
+
+exports.existsUser = async (id) => {
+  return !!(await User.findOne({ _id: id }))?.toJSON() || null;
+};
+
+exports.isBlocked = async (id, userId) => {
+  id = new mongoose.Types.ObjectId(id);
+  userId = new mongoose.Types.ObjectId(userId);
+
+  if (
+    await User.findOne(
+      {
+        _id: id,
+        blocks: {
+          $elemMatch: {
+            $eq: userId,
+          },
+        },
+      },
+      "_id"
+    )
+  ) {
+    return "ME";
+  }
+
+  if (
+    await await User.findOne(
+      {
+        _id: userId,
+        blocks: {
+          $elemMatch: {
+            $eq: id,
+          },
+        },
+      },
+      "_id"
+    )
+  ) {
+    return "YOU";
+  }
+
+  return false;
+};
+
+exports.block = async (id, userId) => {
+  id = new mongoose.Types.ObjectId(id);
+  userId = new mongoose.Types.ObjectId(userId);
+
+  if ((await this.isBlocked(id, userId)) === false) {
+    await User.updateOne(
+      {
+        _id: id,
+      },
+      {
+        $push: {
+          blocks: userId,
+        },
+      }
+    );
+    return true;
+  }
+
+  return false;
+};
+
+exports.getCommonUser = async (id) => {
+  return (
+    await User.findById(
+      id,
+      "name description phone avatar last-online is-online"
+    )
+  )?.toJSON() || null;
+};
+// !(async () => {
+//   console.log(await this.getCommonUser("609b8202b5a389099cae3ce6"));
+// })();

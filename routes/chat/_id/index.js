@@ -1,19 +1,16 @@
-const Chat = require("../../../helpers/Chat");
+const { getChat } = require("../../../helpers/chat");
 
-exports.get = async ({ user, params: { id }, query: { beforeId } }, res) => {
-  if (user == null) {
-    res.status(400).json({
-      message: "PLEASE_LOGIN",
-    });
+exports.middleware = "auth-jwt";
+
+exports.get = async (
+  { user, params: { id }, query: { "before-id": beforeId } },
+  res
+) => {
+  const chat = await getChat(user._id, id, beforeId);
+
+  if (chat) {
+    res.json(chat);
   } else {
-    try {
-      const conversation = await Chat.getConversation(user._id, id, beforeId);
-      res.json(conversation);
-    } catch (e) {
-       console.log( e )
-      res.status(e.statusCode || 502).json({
-        message: e.message || "INVALID_CONVERSATION",
-      });
-    }
+    res.status(402).end(`Not Found Chat ${id}`);
   }
 };

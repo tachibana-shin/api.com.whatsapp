@@ -1,4 +1,12 @@
 const mongoose = require("mongoose");
+// const cachegoose = require("cachegoose");
+
+// cachegoose(mongoose, {
+//   engine: "redis" /* If you don't specify the redis engine,      */,
+//   port: 6379 /* the query results will be cached in memory. */,
+//   host: "localhost",
+// });
+
 function mergeOptions(options, defaults) {
   if (options === null || typeof options !== "object") {
     options = {

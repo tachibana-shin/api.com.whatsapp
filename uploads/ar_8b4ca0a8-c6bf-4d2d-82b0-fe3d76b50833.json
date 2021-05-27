@@ -1,0 +1,43 @@
+{
+
+
+    "LAN" : "ENG",
+
+
+    "missionText_1"  : "defeat red bugs",
+    "missionText_2"  : "defeat red snails",
+    "missionText_3"  : "defeat blue snails",
+    "missionText_4"  : "defeat sting bugs",
+    "missionText_5"  : "destroy brick blocks",
+    "missionText_6"  : "destroy item blocks",
+    "missionText_7"  : "collect coins",
+    "missionText_8"  : "collect pinecones",
+    "missionText_9"  : "collect shamrocks",
+    "missionText_10" : "collect gold pots",
+    "missionText_11" : "complete levels",
+    "missionText_12" : "complete tournaments",
+    "missionText_13" : "don't throw pinecones...",
+    "missionText_14" : "defeat no enemy...",
+    "missionText_15" : "never go left...",
+    "missionText_16" : "don't destroy a block...",
+    "missionText_17" : "last 10 seconds...",
+    "missionText_18" : "without a Air Jump...",
+    "missionText_19" : "within 40 seconds...",
+    "missionText_20" : "complete all missions",
+
+    
+    "localNotiHeadline" : "العب الان! ☘️",
+    "localNotiTournament" : "😃😁 Play Tournament mode \nand increase your Lep Points! 💎💎",
+    "localNotiTournamentAndroid" : "Play Tournament mode \nand increase your Lep Points!",
+    "localNotiWheel" : "عجلة الحظ :) \nتعال وجربها!",
+    "localNotiGift"  : "مكافأتك اليومية \nبانتظارك! :) 💎💎",
+    "localNotiGiftAndroid"  : "مكافأتك اليومية \nبانتظارك! :)",
+    "localNotiBoost1"  : "احصل على مكافأتك المجانية اليومية. \nإنه في انتظارك! 😃",
+    "localNotiBoost1Android"  : "احصل على مكافأتك المجانية اليومية. \nإنه في انتظارك! :)",
+    "localNotiBoost2"  : "لا تنس التعزيزات المجانية اليومية. 🚀 \nاجمعهم الآن!",
+    "localNotiBoost2Android"  : "لا تنس التعزيزات المجانية اليومية. \nاجمعهم الآن!",
+    "localNotiHeart" : "لقد استرددت كل القلوب! \nلننطلق!",
+    "localNotiTimeA" : "يحتاج Lep إلى مساعدتك! \nادعمه في جميع المستويات المتبقية!",
+    "localNotiTimeB" : "أمللت؟ \nساعد Lep في جميع المستويات المتبقية!"
+
+}

@@ -12,7 +12,6 @@ function required(prop) {
   return `${prop}_REQUIRED`;
 }
 const SUser = new mongoose.Schema({
-  // _id: String,
   name: {
     type: String,
     maxlength: [25, maxlength("USERNAME", 25)],
@@ -35,28 +34,6 @@ const SUser = new mongoose.Schema({
     required: false,
     default: null,
   },
-  // phone: {
-  //   prephone: {
-  //     type: Number,
-  //     min: 1,
-  //     max: 99,
-  //     required: function () {
-  //       return !(this as { email?: string }).email
-  //         ? [true, "Prephone required please."]
-  //         : false;
-  //     },
-  //   },
-  //   serial: {
-  //     type: String,
-  //     minlength: 10,
-  //     maxlength: [18, "Phone number serial maxium length 20."],
-  //     required: function () {
-  //       return !(this as { email?: string }).email
-  //         ? [true, "Prephone required please."]
-  //         : false;
-  //     },
-  //   },
-  // },
   email: {
     type: String,
     validate(email) {
@@ -95,11 +72,29 @@ const SUser = new mongoose.Schema({
       return new Date();
     },
   },
-  lastOnline: {
+  blocks: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+    },
+  ],
+  "is-online": {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
+  "last-online": {
     type: Date,
     required: true,
     default() {
       return new Date();
+    },
+    get(value) {
+      if (this["is-online"] === true) {
+        return new Date();
+      }
+
+      return value;
     },
   },
 });
