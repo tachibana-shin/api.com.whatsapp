@@ -26,7 +26,7 @@ const transporter = nodemailer.createTransport({
 exports.existsEmail = async function (email) {
   const user = await User.findOne({ email });
 
-  return !!user?.toJSON() || null;
+  return !!user?.toJSON() ?? null;
 };
 
 exports.sendOTP = async function (params) {
@@ -93,15 +93,16 @@ exports.register = async function (params) {
 };
 
 exports.login = async function (email, password) {
-  const user = (
-    await User.findOne(
-      {
-        email,
-        password,
-      },
-      "_id"
-    )
-  )?.toJSON() || null;
+  const user =
+    (
+      await User.findOne(
+        {
+          email,
+          password,
+        },
+        "_id"
+      )
+    )?.toJSON() ?? null;
   if (user) {
     return {
       user: user,
@@ -117,7 +118,7 @@ exports.login = async function (email, password) {
 exports.userInToken = function (token) {
   try {
     return jsonwebtoken.verify(token, serceKey).data;
-  } catch (e) {
+  } catch {
     throw new Error("TOKEN_INVALID");
   }
 };
@@ -132,7 +133,7 @@ exports.emitMyOnline = async function (_id, date = new Date()) {
 };
 
 exports.existsUser = async (id) => {
-  return !!(await User.findOne({ _id: id }))?.toJSON() || null;
+  return !!(await User.findOne({ _id: id }))?.toJSON() ?? null;
 };
 
 exports.isBlocked = async (id, userId) => {
@@ -197,12 +198,135 @@ exports.block = async (id, userId) => {
 
 exports.getCommonUser = async (id) => {
   return (
-    await User.findById(
-      id,
-      "name description phone avatar last-online is-online"
-    )
-  )?.toJSON() || null;
+    (
+      await User.findById(
+        id,
+        "name description phone avatar last-online is-online"
+      )
+    )?.toJSON() ?? null
+  );
 };
-// !(async () => {
-//   console.log(await this.getCommonUser("609b8202b5a389099cae3ce6"));
-// })();
+
+exports.getHistorySearch = async (id) => {
+  return (
+    await User.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(id),
+        },
+      },
+
+      {
+        $set: {
+          count: {
+            $size: "$history-search",
+          },
+          "history-search": {
+            $slice: ["$history-search", -8, 8],
+          },
+        },
+      },
+
+      {
+        $lookup: {
+          from: "users",
+          localField: "history-search",
+          foreignField: "_id",
+          as: "history-search",
+        },
+      },
+
+      {
+        $set: {
+          "history-search": {
+            $reverseArray: "$history-search",
+          },
+        },
+      },
+
+      {
+        $set: {
+          "history-search": {
+            $map: {
+              input: "$history-search",
+              in: {
+                _id: "$$this._id",
+                name: "$$this.name",
+                avatar: "$$this.avatar",
+              },
+            },
+          },
+        },
+      },
+
+      {
+        $project: {
+          count: "$count",
+          "history-search": "$history-search",
+        },
+      },
+    ])
+  )[0];
+};
+
+exports.hintSearch = async (id) => {
+  return await User.aggregate([
+    {
+      $match: {
+        _id: {
+          $ne: new mongoose.Types.ObjectId(id),
+        },
+      },
+    },
+
+    {
+      $sort: {
+        created: -1,
+      },
+    },
+
+    {
+      $limit: 33,
+    },
+
+    {
+      $project: {
+        _id: "$_id",
+        name: "$name",
+        avatar: "$avatar",
+      },
+    },
+  ]);
+};
+
+exports.search = async (id, keyword, index = 0) => {
+  return await User.find(
+    {
+      name: {
+        $regex: new RegExp(
+          keyword?.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+          "i"
+        ),
+      },
+    },
+    "_id name avatar"
+  )
+    .skip(index)
+    .limit(20);
+};
+
+exports.addToHistory = async (id, id2) => {
+  id = new mongoose.Types.ObjectId(id);
+  id2 = new mongoose.Types.ObjectId(id2);
+
+  await User.findByIdAndUpdate(id, {
+    $pull: {
+      "history-search": id2,
+    },
+  });
+  await User.findByIdAndUpdate(id, {
+    $push: {
+      "history-search": id2,
+    },
+  });
+};

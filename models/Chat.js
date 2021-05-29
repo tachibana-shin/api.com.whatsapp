@@ -18,6 +18,11 @@ const SChat = new mongoose.Schema({
     ref: "user",
     required: [true, "REQUIRED_CREATOR"],
   },
+  notify: {
+    type: Boolean,
+    required: true,
+    default: true,
+  },
   "name-group": {
     type: String,
     trim: true,
@@ -177,7 +182,10 @@ const SChat = new mongoose.Schema({
           duration: {
             type: Number,
             required() {
-              if (!this?.body?.content) {
+              if (
+                !this?.body?.content &&
+                this?.body?.type?.match(/(?:video|audio)\//)
+              ) {
                 return [true, "MESSAGE_REQUIRED_FILE_OR_CONTENT_DUR"];
               }
             },

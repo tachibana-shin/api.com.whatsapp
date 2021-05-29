@@ -1,6 +1,6 @@
 const { Mongoose, Types } = require("mongoose");
 const Chat = require("../models/Chat");
-const { getMediaFiles, getListCommonGroup } = require("./chat");
+const { getMediaFiles, getListCommonGroup, isOnNotify } = require("./chat");
 const { isBlocked, getCommonUser, existsUser } = require("./user");
 
 exports.getPersonalUser = async (id, userId) => {
@@ -9,17 +9,19 @@ exports.getPersonalUser = async (id, userId) => {
   }
 
   if (await existsUser(userId)) {
-    const [files, commonGroup, commonUser] = await Promise.all([
+    const [files, commonGroup, commonUser, notify] = await Promise.all([
       getMediaFiles(id, userId),
       getListCommonGroup(id, userId),
       getCommonUser(userId),
+      isOnNotify(id, userId),
     ]);
-
+    
     return {
       ...commonUser,
       files,
       commonGroup,
       "is-user": true,
+      notify,
     };
   }
 
@@ -45,11 +47,16 @@ exports.getPersonalGroup = async (id, groupId) => {
         "count-members": {
           $size: "$members",
         },
-        members: {
+      },
+    },
+
+    {
+      $set: {
+        memberss: {
           $filter: {
             input: "$members",
             cond: {
-              $ne: id,
+              $ne: ["$$this", id],
             },
           },
         },
@@ -102,6 +109,7 @@ exports.getPersonalGroup = async (id, groupId) => {
             },
           },
         },
+        false: false,
       },
     },
 
@@ -114,13 +122,14 @@ exports.getPersonalGroup = async (id, groupId) => {
         files: "$files",
         created: "$created",
         creator: "$creator",
-        "is-user": false,
-        "count-members": "$count-members"
+        "is-user": "$false",
+        "count-members": "$count-members",
+        notify: "$notify",
       },
     },
   ]);
 
-  return result?.[0] || null;
+  return result?.[0] ?? null;
 };
 
 exports.getPersonal = async (id, id2) => {

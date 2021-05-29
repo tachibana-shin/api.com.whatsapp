@@ -97,6 +97,16 @@ const SUser = new mongoose.Schema({
       return value;
     },
   },
+  "history-search": [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+    },
+  ],
+});
+
+SUser.index({
+  name: "text",
 });
 
 module.exports = mongoose.model("user", SUser);

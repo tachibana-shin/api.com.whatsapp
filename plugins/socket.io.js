@@ -248,7 +248,7 @@ module.exports = (server) => {
     });
     socket.on("i read message", async (chatId, beforeId) => {
       if (socket.state.user) {
-        const { _id, members } = await getMembers(
+        const { _id, members, success } = await getMembers(
           socket.state.user._id,
           chatId
         );
@@ -258,7 +258,7 @@ module.exports = (server) => {
           beforeId
         );
 
-        if (nModified > 0) {
+        if (nModified > 0 && success) {
           const sockets = getSocker(members, socket.id);
 
           io.to([...sockets, socket.id]).emit(
@@ -273,29 +273,33 @@ module.exports = (server) => {
 
     socket.on("focused", async (chatId) => {
       if (socket.state.user) {
-        const { _id, members } = await getMembers(
+        const { _id, members, success } = await getMembers(
           socket.state.user._id,
           chatId
         );
 
-        const sockets = getSocker(members, socket.id);
+        if (success) {
+          const sockets = getSocker(members, socket.id);
 
-        if (sockets.length > 0) {
-          io.to(sockets).emit("i focus", _id, socket.state.user._id);
+          if (sockets.length > 0) {
+            io.to(sockets).emit("i focus", _id, socket.state.user._id);
+          }
         }
       }
     });
     socket.on("blured", async (chatId) => {
       if (socket.state.user) {
-        const { _id, members } = await getMembers(
+        const { _id, members, success } = await getMembers(
           socket.state.user._id,
           chatId
         );
 
-        const sockets = getSocker(members, socket.id);
+        if (success) {
+          const sockets = getSocker(members, socket.id);
 
-        if (sockets.length > 0) {
-          io.to(sockets).emit("i blur", _id, socket.state.user._id);
+          if (sockets.length > 0) {
+            io.to(sockets).emit("i blur", _id, socket.state.user._id);
+          }
         }
       }
     });

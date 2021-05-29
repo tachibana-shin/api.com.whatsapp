@@ -12,7 +12,7 @@ passport.use(
       } else {
         throw new Error("LOGIN_FAILED");
       }
-    } catch (err) {
+    } catch {
       done(null, false, {
         message: "INVALID_USERNAME_OR_PASSORD",
       });

@@ -40,7 +40,7 @@ app.use((req, res, next) => {
     } else {
       throw new Error("AUTHORIZATION_NOT_FOUND");
     }
-  } catch (e) {
+  } catch {
     req.user = null;
   }
   next();

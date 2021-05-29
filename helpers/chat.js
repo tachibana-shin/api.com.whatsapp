@@ -958,7 +958,7 @@ exports.getChat = async (id, chatId, beforeId) => {
             body: "$messages.body",
             created: "$messages.created",
             isend: "$messages.isend",
-            sender: "$messages.sender"
+            sender: "$messages.sender",
           },
         },
         emptyMessage: {
@@ -1052,15 +1052,20 @@ exports.getChat = async (id, chatId, beforeId) => {
     const user =
       (
         await User.findOne({ _id: chatId }, "_id name avatar last-online")
-      )?.toJSON() || null;
+      )?.toJSON() ?? null;
 
     if (user) {
       const { _id, name, avatar } = user;
       return {
         _id,
+        roomId: _id,
+        members: [],
+        private: true,
         name,
         avatar,
+        "count-members": 2,
         messages: [],
+        creator: _id,
       };
     }
     const chat = await this.getInfoChat(id, chatId);
@@ -1186,7 +1191,7 @@ exports.saveMessage = async (id, chatId, body) => {
           },
         }
       )
-    )?.toJSON() || null;
+    )?.toJSON() ?? null;
 
   if (result === null) {
     /// if not exists chat
@@ -1236,7 +1241,7 @@ exports.saveMessage = async (id, chatId, body) => {
       body: message.body,
       created: message.created,
       isend: `${message.sender}` === `${id}`,
-      sender: `${message.sender}`
+      sender: `${message.sender}`,
     },
   };
 };
@@ -1274,11 +1279,12 @@ exports.getMembers = async (id, chatId) => {
         },
         "_id members"
       )
-    )?.toJSON() || null;
+    )?.toJSON() ?? null;
 
   return {
-    _id: results._id,
-    members: results.members,
+    success: !!results,
+    _id: results?._id,
+    members: results?.members,
   };
 };
 
@@ -1302,7 +1308,9 @@ exports.getMediaFiles = async (id, userId, beforeid, limit = 20) => {
         "messages.body.file": {
           $exists: true,
         },
-        "messages.sender": userId,
+        "messages.members": {
+          $in: [userId],
+        },
       },
     },
     {
@@ -1358,7 +1366,7 @@ exports.getListCommonGroup = async (id, userId) => {
           $filter: {
             input: "$members",
             cond: {
-              $ne: id,
+              $ne: ["$$this", id],
             },
           },
         },
@@ -1410,6 +1418,118 @@ exports.getListCommonGroup = async (id, userId) => {
       },
     },
   ]);
+};
+
+exports.isOnNotify = async (id, chatId) => {
+  id = new mongoose.Types.ObjectId(id);
+  chatId = new mongoose.Types.ObjectId(chatId);
+  return (
+    await Chat.findOne(
+      {
+        $or: [
+          {
+            private: true,
+            $or: [
+              {
+                members: [id, chatId],
+              },
+              {
+                members: [chatId, id],
+              },
+            ],
+          },
+          {
+            private: false,
+            _id: chatId,
+            members: {
+              $elemMatch: {
+                $eq: id,
+              },
+            },
+          },
+        ],
+      },
+      "notify"
+    )
+  )?.toJSON()?.notify;
+};
+
+exports.turnOnNotify = async (id, chatId) => {
+  id = new mongoose.Types.ObjectId(id);
+  chatId = new mongoose.Types.ObjectId(chatId);
+
+  await Chat.updateOne(
+    {
+      $or: [
+        {
+          private: true,
+          $or: [
+            {
+              members: [id, chatId],
+            },
+            {
+              members: [chatId, id],
+            },
+          ],
+        },
+        {
+          private: false,
+          _id: chatId,
+          members: {
+            $elemMatch: {
+              $eq: id,
+            },
+          },
+        },
+      ],
+    },
+    {
+      notify: true,
+    }
+  );
+};
+
+exports.turnOffNotify = async (id, chatId) => {
+  id = new mongoose.Types.ObjectId(id);
+  chatId = new mongoose.Types.ObjectId(chatId);
+
+  await Chat.updateOne(
+    {
+      $or: [
+        {
+          private: true,
+          $or: [
+            {
+              members: [id, chatId],
+            },
+            {
+              members: [chatId, id],
+            },
+          ],
+        },
+        {
+          private: false,
+          _id: chatId,
+          members: {
+            $elemMatch: {
+              $eq: id,
+            },
+          },
+        },
+      ],
+    },
+    {
+      notify: false,
+    }
+  );
+};
+
+exports.toggleNotify = async (id, chatId) => {
+  if (await this.isOnNotify(id, chatId)) {
+    await this.turnOffNotify(id, chatId);
+  } else {
+    await this.turnOnNotify(id, chatId);
+  }
 };
 // !(async () => {
 //   try {

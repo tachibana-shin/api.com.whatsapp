@@ -1,4 +1,4 @@
-const { getPersonal } = require("../../../helpers/personal");
+const { getPersonalGroup, getPersonal } = require("../../../helpers/personal");
 
 exports.middleware = "auth-jwt";
 
