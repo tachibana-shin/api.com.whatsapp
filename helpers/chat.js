@@ -958,6 +958,7 @@ exports.getChat = async (id, chatId, beforeId) => {
             body: "$messages.body",
             created: "$messages.created",
             isend: "$messages.isend",
+            sender: "$messages.sender"
           },
         },
         emptyMessage: {
@@ -1235,6 +1236,7 @@ exports.saveMessage = async (id, chatId, body) => {
       body: message.body,
       created: message.created,
       isend: `${message.sender}` === `${id}`,
+      sender: `${message.sender}`
     },
   };
 };
