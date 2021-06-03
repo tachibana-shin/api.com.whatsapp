@@ -1531,6 +1531,41 @@ exports.toggleNotify = async (id, chatId) => {
     await this.turnOnNotify(id, chatId);
   }
 };
+
+exports.getIdRoom = async (id, chatId) => {
+  id = new mongoose.Types.ObjectId(id);
+  chatId = new mongoose.Types.ObjectId(chatId);
+  return (
+    await Chat.findOne(
+      {
+        $or: [
+          {
+            private: true,
+            $or: [
+              {
+                members: [id, chatId],
+              },
+              {
+                members: [chatId, id],
+              },
+            ],
+          },
+          {
+            private: false,
+            _id: chatId,
+            members: {
+              $elemMatch: {
+                $eq: id,
+              },
+            },
+          },
+        ],
+      },
+      "_id"
+    )
+  )?.toJSON()?._id;
+};
+
 // !(async () => {
 //   try {
 //     console.log(

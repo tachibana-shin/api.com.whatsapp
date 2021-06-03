@@ -1,20 +1,16 @@
 const { userInToken, emitMyOnline } = require("../helpers/user");
-const Chat = require("../models/Chat");
 const { uuid: uuidv4 } = require("uuidv4");
-const fs = require("fs");
 const path = require("path");
-const fsExtra = require("fs-extra");
 const { Server } = require("socket.io");
 const socketIOFile = require("socket.io-file");
 const ImageSize = require("image-size");
 const ffprobe = require("ffprobe");
 const ffprobeStatic = require("ffprobe-static");
 const {
-  getRoomID,
+  getIdRoom,
   saveMessage,
   markAsRead,
   getMembers,
-  getChatOfList,
 } = require("../helpers/chat");
 
 module.exports = (server) => {
@@ -301,6 +297,25 @@ module.exports = (server) => {
             io.to(sockets).emit("i blur", _id, socket.state.user._id);
           }
         }
+      }
+    });
+
+    socket.on("join video call", async (chatId) => {
+      const roomId = await getIdRoom(socket.state.user._id, chatId);
+
+      if (roomId) {
+        [...socket.rooms].forEach((room) => {
+          if (room.match(/^video call/)) {
+            socket.leave(room);
+          }
+        });
+
+        socket.join(`video call ${roomId}`);
+        socket
+          .to(`video call ${roomId}`)
+          .broadcast.emit("i join video call", chatId, socket.state.user._id);
+      } else {
+        io.to(socket.id).emit("join video call__ERROR", chatId, "NOT_FOUND");
       }
     });
   });

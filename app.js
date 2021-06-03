@@ -11,6 +11,7 @@ const User = require("./models/User");
 const chalk = require("chalk");
 const http = require("http");
 const passport = require("passport");
+const { ExpressPeerServer } = require("peer");
 db.connect().then(async () => {
   console.log(chalk.blue("MongoDB connected!"));
   await User.updateMany(
@@ -48,6 +49,10 @@ app.use((req, res, next) => {
 app.use(require("./middleware/is-online"));
 app.use(express_import_routes());
 const server = http.createServer(app);
+const peerServer = ExpressPeerServer(app, {
+  debug: true,
+});
+app.use("/video-call", peerServer);
 require("./plugins/socket.io")(server);
 const PORT = +(process.env.PORT || 3000);
 server.listen(PORT, (err) => {
