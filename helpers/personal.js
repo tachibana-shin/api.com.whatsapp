@@ -15,7 +15,7 @@ exports.getPersonalUser = async (id, userId) => {
       getCommonUser(userId),
       isOnNotify(id, userId),
     ]);
-    
+
     return {
       ...commonUser,
       files,
@@ -76,7 +76,9 @@ exports.getPersonalGroup = async (id, groupId) => {
         files: {
           $function: {
             body: function (files) {
-              return files.map((item) => item.body.file).filter(Boolean);
+              return {
+                file: files.map((item) => item.body.file).filter(Boolean),
+              };
             },
             args: ["$messages"],
             lang: "js",

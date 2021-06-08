@@ -103,6 +103,69 @@ const SUser = new mongoose.Schema({
       ref: "user",
     },
   ],
+
+  activitys: {
+    type: [
+      {
+        body: {
+          image: {
+            type: String,
+            required() {
+              if (!this.body.content) {
+                return [true, "REQUIRED_IMAGE_OR_CONTENT"];
+              }
+            },
+          },
+          content: {
+            type: String,
+            trim: true,
+            minlength: 1,
+            required() {
+              if (!this.body.image) {
+                return [true, "REQUIRED_IMAGE_OR_CONTENT"];
+              }
+            },
+          },
+          "font-family": {
+            type: String,
+            trim: true,
+            required() {
+              if (!this.body.image) {
+                return [true, "REQUIRED_IMAGE_OR_CONTENT"];
+              }
+            },
+          },
+          "background-color": {
+            type: String,
+            trim: true,
+            required() {
+              if (!this.body.image) {
+                return [true, "REQUIRED_IMAGE_OR_CONTENT"];
+              }
+            },
+          },
+        },
+        viewer: {
+          type: [
+            {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: "user",
+            },
+          ],
+          required: true,
+          default: () => [],
+        },
+        created: {
+          type: Date,
+          required: true,
+          default: () => new Date(),
+        },
+      },
+    ],
+    index: {
+      expires: "24h",
+    },
+  },
 });
 
 SUser.index({

@@ -201,7 +201,7 @@ exports.getCommonUser = async (id) => {
     (
       await User.findById(
         id,
-        "name description phone avatar last-online is-online"
+        "name description phone avatar last-online is-online email"
       )
     )?.toJSON() ?? null
   );
@@ -327,6 +327,85 @@ exports.addToHistory = async (id, id2) => {
   await User.findByIdAndUpdate(id, {
     $push: {
       "history-search": id2,
+    },
+  });
+};
+
+exports.getFriends = async (id, lookup = false) => {
+  return await Chat.aggregate([
+    {
+      $match: {
+        private: true,
+        members: {
+          $in: [new mongoose.Type.ObjectId(id)],
+        },
+      },
+    },
+
+    {
+      $set: {
+        for: {
+          $cond: {
+            if: {
+              $eq: [
+                {
+                  $arrayElemAt: ["$members", 0],
+                },
+                id,
+              ],
+            },
+            then: {
+              $arrayElemAt: ["$members", 1],
+            },
+            else: {
+              $arrayElemAt: ["$members", 0],
+            },
+          },
+        },
+      },
+    },
+
+    ...(lookup
+      ? [
+          {
+            $lookup: {
+              from: "users",
+              localField: "for",
+              foreignField: "_id",
+              as: "for",
+            },
+          },
+          {
+            $unwind: "$for",
+          },
+          {
+            $set: {
+              for: {
+                name: "$for.name",
+                avatar: "$for.avatar",
+                "last-online": "$for.last-online",
+                "is-online": "$for.is-online",
+              },
+            },
+          },
+        ]
+      : []),
+
+    {
+      $replaceRoot: {
+        replaceRoot: "$for",
+      },
+    },
+  ]);
+};
+
+exports.isFriend = async (id, id2) => {
+  id = new mongoose.Types.ObjectId(id);
+  id2 = new mongoose.Types.ObjectId(id2);
+
+  return await Chat.exists({
+    memmbers: {
+      $in: [id, id2],
     },
   });
 };

@@ -74,7 +74,7 @@ module.exports = (server) => {
         const file = path.parse(filename);
         const fname = file.name;
         const ext = file.ext;
-        return `${fname}_${uuidv4()}${ext}`;
+        return `${Date.now()}_${uuidv4()}${ext}`;
       },
     });
 

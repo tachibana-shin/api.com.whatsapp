@@ -1292,7 +1292,7 @@ exports.getMediaFiles = async (id, userId, beforeid, limit = 20) => {
   id = new mongoose.Types.ObjectId(id);
   userId = new mongoose.Types.ObjectId(userId);
 
-  return await Chat.aggregate([
+  const results = await Chat.aggregate([
     {
       $match: {
         members: {
@@ -1308,9 +1308,9 @@ exports.getMediaFiles = async (id, userId, beforeid, limit = 20) => {
         "messages.body.file": {
           $exists: true,
         },
-        "messages.members": {
-          $in: [userId],
-        },
+        // "messages.members": {
+        //   $in: [userId],
+        // },
       },
     },
     {
@@ -1341,6 +1341,10 @@ exports.getMediaFiles = async (id, userId, beforeid, limit = 20) => {
       },
     },
   ]);
+
+  // console.log( results )
+
+  return results;
 };
 
 exports.getListCommonGroup = async (id, userId) => {
